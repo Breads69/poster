@@ -1,0 +1,24 @@
+name: Commit Image from Discord
+on:
+  repository_dispatch:
+    types: [commit_image]  # This means the action runs when you send an event named "commit_image"
+jobs:
+  add_image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3  # This gets a copy of your repo
+      - name: Download image and commit
+        run: |
+          # Get the image URL sent with the event
+          IMAGE_URL=${{ github.event.client_payload.image_url }}
+          # Create a unique filename using the current time
+          FILE_NAME="image-$(date +%s).jpg"
+          # Download the image from the URL
+          curl -L $IMAGE_URL -o $FILE_NAME
+          # Set Git user info (so the commit shows up nicely)
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          # Add the image to the repo and commit it
+          git add $FILE_NAME
+          git commit -m "Add image from Discord"
+          git push
